@@ -1,0 +1,21 @@
+os: linux
+dist: focal
+language: shell
+
+branches:
+  only:
+    - main
+
+jobs:
+  include:
+    - name: Build Multi-Arch image
+      arch: amd64
+      services:
+        - docker
+      before_install:
+        - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+      install:
+        - docker buildx create --use
+      script:
+        - docker login -u "$REGISTRY_USERNAME" --password "$REGISTRY_TOKEN" $REGISTRY
+        - docker buildx build --platform linux/amd64,linux/arm64,linux/ppc64le --push --tag $REGISTRY/$REPO_NAME/$IMAGE_NAME:latest .
