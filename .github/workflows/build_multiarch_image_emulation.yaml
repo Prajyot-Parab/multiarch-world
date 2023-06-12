@@ -1,14 +1,16 @@
-name: Build Multi-Arch Image
+name: Build Multi-Arch Image via Emulation
 
 on: [push, workflow_dispatch]
 
 jobs:
   build:
-    name: Build Multi-Arch image
+    name: Build Multi-Arch image via Emulation
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          path: 'emulation'
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -26,6 +28,7 @@ jobs:
       - name: Build and Push Image
         uses: docker/build-push-action@v3
         with:
-          tags: ${{ vars.REGISTRY }}/${{ vars.REPO_NAME }}/${{ vars.IMAGE_NAME }}:latest
+          context: emulation
+          tags: ${{ vars.REGISTRY }}/${{ vars.REPO_NAME }}/${{ vars.IMAGE_NAME }}-emulation:latest
           platforms: linux/amd64,linux/arm64,linux/ppc64le
           push: true

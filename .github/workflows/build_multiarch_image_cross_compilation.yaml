@@ -1,0 +1,34 @@
+name: Build Multi-Arch Image via Cross-Compilation
+
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    name: Build Multi-Arch image via Cross-Compilation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: 'cross-compilation'
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to container registry
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_TOKEN }}
+          registry: ${{ vars.REGISTRY }}
+
+      - name: Build and Push Image
+        uses: docker/build-push-action@v3
+        with:
+          context: cross-compilation
+          tags: ${{ vars.REGISTRY }}/${{ vars.REPO_NAME }}/${{ vars.IMAGE_NAME }}-cross-compilation:latest
+          platforms: linux/amd64,linux/arm64,linux/ppc64le
+          push: true
