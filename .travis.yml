@@ -13,9 +13,12 @@ jobs:
       services:
         - docker
       before_install:
+        - mkdir -vp ~/.docker/cli-plugins/
+        - curl -sSL "https://github.com/docker/buildx/releases/download/v0.10.4/buildx-v0.10.4.linux-amd64" > ~/.docker/cli-plugins/docker-buildx
+        - chmod a+x ~/.docker/cli-plugins/docker-buildx
         - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
       install:
-        - docker buildx create --use
+        - docker buildx create --use --name=multiarch
       script:
         - docker login -u "$REGISTRY_USERNAME" --password "$REGISTRY_TOKEN" $REGISTRY
         - docker buildx build --platform linux/amd64,linux/arm64,linux/ppc64le --push --tag $REGISTRY/$REPO_NAME/$IMAGE_NAME:latest .
