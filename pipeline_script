@@ -1,0 +1,26 @@
+pipeline {
+    agent any
+    
+    environment {
+        REGISTRY_NAME = credentials('REGISTRY_NAME')
+        REGISTRY_USERNAME = credentials('REGISTRY_USERNAME')
+        REGISTRY_PASSWORD = credentials('REGISTRY_PASSWORD')
+    }
+    
+    stages {
+        stage('Build') {
+            steps {
+                sh '''
+                    rm -rf multiarch-world
+                    git clone -b main https://github.com/Prajyot-Parab/multiarch-world.git
+                    cd multiarch-world
+                    podman manifest rm multiarch-world || true
+                    podman build --platform linux/amd64,linux/ppc64le --manifest multiarch-world .
+                    podman login -u "${REGISTRY_USERNAME}" -p "${REGISTRY_PASSWORD}" quay.io
+                    podman manifest push --all multiarch-world docker://quay.io/${REGISTRY_NAME}/multiarch-world:latest
+                    podman logout quay.io
+                '''
+            }
+        }
+    }
+}
